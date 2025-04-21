@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Career Prediction Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <div class="container results">
+        <h1>Your Career Prediction Results</h1>
+        
+        <div class="result-section">
+            <h2>Recommended Careers</h2>
+            <ol class="career-list">
+                {% for career in result.predicted_careers %}
+                <li>{{ career }}</li>
+                {% endfor %}
+            </ol>
+        </div>
+        
+        <div class="result-section">
+            <h2>Viability Assessment</h2>
+            <div class="viability {{ result.viability_assessment.level|lower }}">
+                <h3>{{ result.viability_assessment.level }} Viability</h3>
+                <p>Score: {{ "%.2f"|format(result.viability_assessment.score) }}</p>
+                <p>{{ result.viability_assessment.explanation }}</p>
+            </div>
+        </div>
+        
+        {% if result.alternative_companies %}
+        <div class="result-section">
+            <h2>Alternative Companies</h2>
+            <p>Based on your experience and coding skills, consider these alternatives:</p>
+            <ul class="company-list">
+                {% for company in result.alternative_companies %}
+                <li>{{ company }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        <div class="form-submit">
+            <a href="/" class="back-button">Try Again</a>
+        </div>
+    </div>
+</body>
+</html>
