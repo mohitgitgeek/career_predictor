@@ -1,47 +1,252 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Career Prediction Results</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Career Results — CareerPredictor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
-    <div class="container results">
-        <h1>Your Career Prediction Results</h1>
-        
-        <div class="result-section">
-            <h2>Recommended Careers</h2>
-            <ol class="career-list">
-                {% for career in result.predicted_careers %}
-                <li>{{ career }}</li>
-                {% endfor %}
-            </ol>
-        </div>
-        
-        <div class="result-section">
-            <h2>Viability Assessment</h2>
-            <div class="viability {{ result.viability_assessment.level|lower }}">
-                <h3>{{ result.viability_assessment.level }} Viability</h3>
-                <p>Score: {{ "%.2f"|format(result.viability_assessment.score) }}</p>
-                <p>{{ result.viability_assessment.explanation }}</p>
-            </div>
-        </div>
-        
-        {% if result.alternative_companies %}
-        <div class="result-section">
-            <h2>Alternative Companies</h2>
-            <p>Based on your experience and coding skills, consider these alternatives:</p>
-            <ul class="company-list">
-                {% for company in result.alternative_companies %}
-                <li>{{ company }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-        
-        <div class="form-submit">
-            <a href="/" class="back-button">Try Again</a>
-        </div>
+
+<div class="page-shell">
+
+  <header class="site-header">
+    <div class="logo">🎯 CareerPredictor</div>
+    <p class="tagline">Your personalised career readiness report</p>
+  </header>
+
+  <!-- ── Viability hero ──────────────────────────────────────── -->
+  <div class="hero-card viability-{{ result.viability_assessment.level | lower }}">
+    <div class="hero-left">
+      <div class="big-score">{{ (result.viability_assessment.score * 100) | round | int }}%</div>
+      <div class="big-label">Overall Readiness</div>
     </div>
+    <div class="hero-right">
+      <div class="viability-badge badge-{{ result.viability_assessment.level | lower }}">
+        {{ result.viability_assessment.level }} Viability
+      </div>
+      <p class="hero-explanation">{{ result.viability_assessment.explanation }}</p>
+      <p class="hero-domain">Domain assessed: <strong>{{ result.effective_domain | title }}</strong></p>
+    </div>
+  </div>
+
+  <!-- ── Top Career Predictions ─────────────────────────────── -->
+  <section class="result-section">
+    <h2 class="section-title">🏆 Recommended Careers</h2>
+    <div class="career-cards">
+      {% for i in range(result.predicted_careers | length) %}
+      {% set career = result.predicted_careers[i] %}
+      {% set prob   = result.career_probabilities[i] %}
+      {% set pct    = (prob * 100) | round | int %}
+      <div class="career-card {% if i == 0 %}top-career{% endif %}">
+        <div class="career-rank">#{{ i + 1 }}</div>
+        <div class="career-name">{{ career }}</div>
+        <div class="career-bar-wrap">
+          <div class="career-bar" style="width: {{ pct }}%"></div>
+        </div>
+        <div class="career-pct">{{ pct }}% match</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- ── Readiness Radar Chart ──────────────────────────────── -->
+  <section class="result-section">
+    <h2 class="section-title">📡 Readiness Profile Radar</h2>
+    <div class="chart-wrap">
+      <canvas id="radarChart" width="420" height="420"></canvas>
+    </div>
+  </section>
+
+  <!-- ── Factor Breakdown ───────────────────────────────────── -->
+  <section class="result-section">
+    <h2 class="section-title">📊 Factor Breakdown</h2>
+    <div class="factor-grid">
+
+      {% set fd = result.readiness_factors %}
+      {% set factor_labels = {
+        'model_confidence': ('🤖', 'AI Confidence'),
+        'coding_skill':     ('💻', 'Coding Skill'),
+        'dsa':              ('🧮', 'DSA / Algorithms'),
+        'portfolio':        ('🗂️', 'Portfolio / Projects'),
+        'experience':       ('💼', 'Work Experience'),
+        'education_level':  ('🎓', 'Education Level'),
+        'degree_relevance': ('📚', 'Degree Relevance'),
+        'domain_match':     ('🎯', 'Domain Match'),
+        'company_match':    ('🏢', 'Company Match'),
+        'certifications':   ('🏅', 'Certifications'),
+        'gpa':              ('📈', 'Academic GPA'),
+        'internship':       ('🔬', 'Internship Exp.'),
+        'communication':    ('🗣️', 'Communication'),
+        'leadership':       ('🌟', 'Leadership'),
+      } %}
+
+      {% for key, (icon, label) in factor_labels.items() %}
+        {% set val = fd[key] %}
+        {% set pct = (val * 100) | round | int %}
+        {% set tier = 'good' if pct >= 70 else ('mid' if pct >= 40 else 'low') %}
+      <div class="factor-item">
+        <div class="factor-header">
+          <span class="factor-icon">{{ icon }}</span>
+          <span class="factor-name">{{ label }}</span>
+          <span class="factor-score score-{{ tier }}">{{ pct }}%</span>
+        </div>
+        <div class="factor-bar-bg">
+          <div class="factor-bar-fill fill-{{ tier }}" style="width:{{ pct }}%"></div>
+        </div>
+      </div>
+      {% endfor %}
+
+    </div>
+  </section>
+
+  <!-- ── Skill Gaps ─────────────────────────────────────────── -->
+  {% if result.skill_gaps %}
+  <section class="result-section">
+    <h2 class="section-title">⚠️ Skill Gaps Identified</h2>
+    <div class="gap-list">
+      {% for gap in result.skill_gaps %}
+      <div class="gap-card">
+        <div class="gap-icon">{{ gap.icon }}</div>
+        <div class="gap-body">
+          <div class="gap-area">{{ gap.area }}</div>
+          <div class="gap-detail">{{ gap.detail }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ── Company Readiness ──────────────────────────────────── -->
+  {% if result.company_readiness %}
+  {% set cr = result.company_readiness %}
+  <section class="result-section">
+    <h2 class="section-title">🏢 {{ cr.company }} — Readiness Checklist</h2>
+    <div class="company-header">
+      <div class="company-score-ring">
+        <svg viewBox="0 0 120 120" class="ring-svg">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="#e2e8f0" stroke-width="10"/>
+          <circle cx="60" cy="60" r="50" fill="none"
+            stroke="{% if cr.readiness_percent >= 70 %}#10b981{% elif cr.readiness_percent >= 45 %}#f59e0b{% else %}#ef4444{% endif %}"
+            stroke-width="10"
+            stroke-dasharray="{{ cr.readiness_percent * 3.14159 }} 314.159"
+            stroke-dashoffset="78.54"
+            stroke-linecap="round"
+            transform="rotate(-90 60 60)"/>
+          <text x="60" y="55" text-anchor="middle" class="ring-pct">{{ cr.readiness_percent }}%</text>
+          <text x="60" y="72" text-anchor="middle" class="ring-label">Ready</text>
+        </svg>
+      </div>
+      <div class="company-culture">
+        <div class="culture-label">Culture &amp; Fit</div>
+        <div class="culture-text">{{ cr.culture_fit }}</div>
+      </div>
+    </div>
+
+    <div class="checklist">
+      {% for check in cr.checks %}
+      <div class="check-row {% if check.status %}check-pass{% else %}check-fail{% endif %}">
+        <span class="check-icon">{% if check.status %}✅{% else %}❌{% endif %}</span>
+        <div class="check-body">
+          <div class="check-name">{{ check.check }}</div>
+          <div class="check-note">{{ check.note }}</div>
+        </div>
+        <div class="check-score-pill">{{ (check.score * 100) | round | int }}%</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ── Action Plan ────────────────────────────────────────── -->
+  {% if result.action_plan %}
+  <section class="result-section">
+    <h2 class="section-title">🗺️ Your Action Plan</h2>
+    <div class="action-list">
+      {% for step in result.action_plan %}
+      <div class="action-item">
+        <div class="action-num">{{ loop.index }}</div>
+        <div class="action-text">{{ step }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ── Alternative Companies ─────────────────────────────── -->
+  {% if result.alternative_companies %}
+  <section class="result-section">
+    <h2 class="section-title">🔀 Alternative Company Paths</h2>
+    <p class="section-sub">Based on your current profile, these routes may be more immediately accessible:</p>
+    <ul class="alt-list">
+      {% for co in result.alternative_companies %}
+      <li>{{ co }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <div class="back-wrap">
+    <a href="/" class="btn btn-secondary">← Try Again</a>
+  </div>
+
+</div><!-- /page-shell -->
+
+<!-- ── Radar chart data ───────────────────────────────────── -->
+<script>
+  const fd = {{ result.readiness_factors | tojson }};
+
+  const labels = [
+    'AI Confidence', 'Coding Skill', 'DSA / Algorithms',
+    'Portfolio', 'Experience', 'Education',
+    'Degree Fit', 'Certifications', 'Communication', 'Leadership'
+  ];
+  const data = [
+    fd.model_confidence, fd.coding_skill, fd.dsa,
+    fd.portfolio, fd.experience, fd.education_level,
+    fd.degree_relevance, fd.certifications, fd.communication, fd.leadership
+  ].map(v => parseFloat((v * 10).toFixed(1)));
+
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Your Profile',
+        data: data,
+        backgroundColor: 'rgba(55, 62, 152, 0.18)',
+        borderColor: '#373e98',
+        borderWidth: 2,
+        pointBackgroundColor: '#f16775',
+        pointBorderColor: '#fff',
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        r: {
+          min: 0, max: 10, ticks: { stepSize: 2, color: '#64748b', font: { size: 11 } },
+          grid:       { color: 'rgba(0,0,0,0.07)' },
+          angleLines:  { color: 'rgba(0,0,0,0.10)' },
+          pointLabels: { color: '#374151', font: { size: 12, weight: '600' } },
+        }
+      },
+      plugins: {
+        legend: { labels: { color: '#374151', font: { size: 13 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}/10`
+          }
+        }
+      }
+    }
+  });
+</script>
+
 </body>
 </html>

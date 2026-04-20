@@ -1,105 +1,339 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Career Predictor</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CareerPredictor — Company Readiness Edition</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1>Career Predictor</h1>
-        <p>Enter your personality traits and aptitude scores to get career recommendations</p>
-        
-        {% if error %}
-        <div class="error">
-            {{ error }}
+
+<div class="page-shell">
+
+  <header class="site-header">
+    <div class="logo">🎯 CareerPredictor</div>
+    <p class="tagline">AI-powered career fit analysis using 14 company-readiness criteria</p>
+  </header>
+
+  {% if error %}
+  <div class="alert alert-error">⚠ {{ error }}</div>
+  {% endif %}
+
+  <!-- ── Step indicator ─────────────────────────────────────── -->
+  <div class="stepper" id="stepper">
+    <div class="step-item active" data-step="1"><span class="step-num">1</span><span class="step-label">Personality</span></div>
+    <div class="step-connector"></div>
+    <div class="step-item" data-step="2"><span class="step-num">2</span><span class="step-label">Aptitude</span></div>
+    <div class="step-connector"></div>
+    <div class="step-item" data-step="3"><span class="step-num">3</span><span class="step-label">Education</span></div>
+    <div class="step-connector"></div>
+    <div class="step-item" data-step="4"><span class="step-num">4</span><span class="step-label">Skills</span></div>
+    <div class="step-connector"></div>
+    <div class="step-item" data-step="5"><span class="step-num">5</span><span class="step-label">Preferences</span></div>
+  </div>
+
+  <form action="/predict" method="post" id="mainForm">
+    <div class="form-card">
+
+      <!-- ═══════════════════════════════════════════════════════
+           STEP 1 — Big Five Personality
+      ════════════════════════════════════════════════════════ -->
+      <div class="step-panel active" id="panel-1">
+        <h2 class="section-title">🧠 Personality Traits</h2>
+        <p class="section-sub">Rate each trait from 1 (very low) to 10 (very high)</p>
+
+        <div class="slider-grid">
+          <div class="slider-group">
+            <label>Openness to Experience <span class="trait-desc">— creativity, curiosity, broad interests</span></label>
+            <div class="slider-row">
+              <input type="range" name="o_score" id="o_score" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'o_val')">
+              <span class="val-badge" id="o_val">5.0</span>
+            </div>
+          </div>
+          <div class="slider-group">
+            <label>Conscientiousness <span class="trait-desc">— discipline, organisation, goal-driven</span></label>
+            <div class="slider-row">
+              <input type="range" name="c_score" id="c_score" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'c_val')">
+              <span class="val-badge" id="c_val">5.0</span>
+            </div>
+          </div>
+          <div class="slider-group">
+            <label>Extraversion <span class="trait-desc">— sociability, assertiveness, energy</span></label>
+            <div class="slider-row">
+              <input type="range" name="e_score" id="e_score" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'e_val')">
+              <span class="val-badge" id="e_val">5.0</span>
+            </div>
+          </div>
+          <div class="slider-group">
+            <label>Agreeableness <span class="trait-desc">— empathy, cooperation, trust</span></label>
+            <div class="slider-row">
+              <input type="range" name="a_score" id="a_score" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'a_val')">
+              <span class="val-badge" id="a_val">5.0</span>
+            </div>
+          </div>
+          <div class="slider-group">
+            <label>Neuroticism <span class="trait-desc">— emotional reactivity, stress sensitivity</span></label>
+            <div class="slider-row">
+              <input type="range" name="n_score" id="n_score" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'n_val')">
+              <span class="val-badge" id="n_val">5.0</span>
+            </div>
+          </div>
         </div>
-        {% endif %}
-        
-        <form action="/predict" method="post">
-            <div class="form-section">
-                <h2>Personality Traits (1-10)</h2>
-                <div class="form-group">
-                    <label for="o_score">Openness to Experience:</label>
-                    <input type="number" id="o_score" name="o_score" min="1" max="10" step="0.1" required>
-                </div>
-                <div class="form-group">
-                    <label for="c_score">Conscientiousness:</label>
-                    <input type="number" id="c_score" name="c_score" min="1" max="10" step="0.1" required>
-                </div>
-                <div class="form-group">
-                    <label for="e_score">Extraversion:</label>
-                    <input type="number" id="e_score" name="e_score" min="1" max="10" step="0.1" required>
-                </div>
-                <div class="form-group">
-                    <label for="a_score">Agreeableness:</label>
-                    <input type="number" id="a_score" name="a_score" min="1" max="10" step="0.1" required>
-                </div>
-                <div class="form-group">
-                    <label for="n_score">Neuroticism:</label>
-                    <input type="number" id="n_score" name="n_score" min="1" max="10" step="0.1" required>
-                </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════
+           STEP 2 — Aptitude Scores
+      ════════════════════════════════════════════════════════ -->
+      <div class="step-panel" id="panel-2">
+        <h2 class="section-title">📐 Aptitude Scores</h2>
+        <p class="section-sub">Rate each aptitude from 1 (very low) to 10 (very high)</p>
+
+        <div class="slider-grid">
+          <div class="slider-group">
+            <label>Numerical Aptitude <span class="trait-desc">— working with numbers and data</span></label>
+            <div class="slider-row">
+              <input type="range" name="numerical" id="numerical" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'num_val')">
+              <span class="val-badge" id="num_val">5.0</span>
             </div>
-            
-            <div class="form-section">
-                <h2>Aptitude Scores (1-10)</h2>
-                <div class="form-group">
-                    <label for="numerical">Numerical Aptitude:</label>
-                    <input type="number" id="numerical" name="numerical" min="1" max="10" step="0.1" required>
-                </div>
-                <div class="form-group">
-                    <label for="spatial">Spatial Aptitude:</label>
-                    <input type="number" id="spatial" name="spatial" min="1" max="10" step="0.1" required>
-                </div>
-                <div class="form-group">
-                    <label for="perceptual">Perceptual Aptitude:</label>
-                    <input type="number" id="perceptual" name="perceptual" min="1" max="10" step="0.1" required>
-                </div>
-                <div class="form-group">
-                    <label for="abstract">Abstract Reasoning:</label>
-                    <input type="number" id="abstract" name="abstract" min="1" max="10" step="0.1" required>
-                </div>
-                <div class="form-group">
-                    <label for="verbal">Verbal Reasoning:</label>
-                    <input type="number" id="verbal" name="verbal" min="1" max="10" step="0.1" required>
-                </div>
+          </div>
+          <div class="slider-group">
+            <label>Spatial Aptitude <span class="trait-desc">— visualising shapes, structures, designs</span></label>
+            <div class="slider-row">
+              <input type="range" name="spatial" id="spatial" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'spa_val')">
+              <span class="val-badge" id="spa_val">5.0</span>
             </div>
-            
-            <div class="form-section">
-                <h2>Additional Information</h2>
-                <div class="form-group">
-                    <label for="yoe">Years of Experience:</label>
-                    <input type="number" id="yoe" name="yoe" min="0" step="1">
-                </div>
-                <div class="form-group">
-                    <label for="coding_rank">Competitive Coding Rank (if any):</label>
-                    <input type="text" id="coding_rank" name="coding_rank" placeholder="e.g., 4* CodeChef">
-                </div>
-                <div class="form-group">
-                    <label for="favorite_domain">Favorite Domain:</label>
-                    <select id="favorite_domain" name="favorite_domain">
-                        <option value="">Select a domain (optional)</option>
-                        <option value="technology">Technology</option>
-                        <option value="healthcare">Healthcare</option>
-                        <option value="finance">Finance</option>
-                        <option value="creative">Creative</option>
-                        <option value="engineering">Engineering</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="disciplines">Familiar Disciplines (comma separated):</label>
-                    <input type="text" id="disciplines" name="disciplines" placeholder="e.g., programming, data analysis">
-                </div>
-                <div class="form-group">
-                    <label for="target_company">Target Company:</label>
-                    <input type="text" id="target_company" name="target_company" placeholder="e.g., Google">
-                </div>
+          </div>
+          <div class="slider-group">
+            <label>Perceptual Aptitude <span class="trait-desc">— accuracy, attention to detail</span></label>
+            <div class="slider-row">
+              <input type="range" name="perceptual" id="perceptual" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'per_val')">
+              <span class="val-badge" id="per_val">5.0</span>
             </div>
-            
-            <div class="form-submit">
-                <button type="submit">Predict Career</button>
+          </div>
+          <div class="slider-group">
+            <label>Abstract Reasoning <span class="trait-desc">— patterns, logic, problem-solving</span></label>
+            <div class="slider-row">
+              <input type="range" name="abstract" id="abstract" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'abs_val')">
+              <span class="val-badge" id="abs_val">5.0</span>
             </div>
-        </form>
-    </div>
+          </div>
+          <div class="slider-group">
+            <label>Verbal Reasoning <span class="trait-desc">— language, comprehension, communication</span></label>
+            <div class="slider-row">
+              <input type="range" name="verbal" id="verbal" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'vbl_val')">
+              <span class="val-badge" id="vbl_val">5.0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════
+           STEP 3 — Education & Experience
+      ════════════════════════════════════════════════════════ -->
+      <div class="step-panel" id="panel-3">
+        <h2 class="section-title">🎓 Education &amp; Experience</h2>
+        <p class="section-sub">Companies screen heavily on education fit and work history</p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="education_level">Highest Education Level</label>
+            <select name="education_level" id="education_level">
+              <option value="high_school">High School / Secondary</option>
+              <option value="associate">Associate / Diploma</option>
+              <option value="bachelor" selected>Bachelor's Degree</option>
+              <option value="master">Master's Degree</option>
+              <option value="phd">PhD / Doctorate</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="degree_field">Degree / Study Field</label>
+            <select name="degree_field" id="degree_field">
+              <option value="stem" selected>STEM (Science, Tech, Engineering, Math)</option>
+              <option value="business">Business / Finance / Economics</option>
+              <option value="arts">Arts / Design / Humanities</option>
+              <option value="medicine">Medicine / Biology / Health</option>
+              <option value="law">Law / Political Science</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="gpa">GPA / Academic Score <span class="hint">(out of 4.0)</span></label>
+            <input type="number" name="gpa" id="gpa" min="0" max="4.0" step="0.01" value="3.0" placeholder="e.g. 3.5">
+          </div>
+
+          <div class="form-group">
+            <label for="yoe">Years of Work Experience</label>
+            <input type="number" name="yoe" id="yoe" min="0" max="40" step="1" value="0">
+          </div>
+
+          <div class="form-group">
+            <label for="internships">Number of Internships</label>
+            <input type="number" name="internships" id="internships" min="0" max="10" step="1" value="0">
+          </div>
+
+          <div class="form-group">
+            <label for="disciplines">Familiar Disciplines <span class="hint">(comma-separated)</span></label>
+            <input type="text" name="disciplines" id="disciplines" placeholder="e.g. data analysis, UI design, financial modelling">
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════
+           STEP 4 — Technical Skills & Portfolio
+      ════════════════════════════════════════════════════════ -->
+      <div class="step-panel" id="panel-4">
+        <h2 class="section-title">⚡ Technical Skills &amp; Portfolio</h2>
+        <p class="section-sub">Key signals companies check during technical screening</p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="dsa_score">Data Structures &amp; Algorithms <span class="hint">(1–10)</span></label>
+            <div class="slider-row">
+              <input type="range" name="dsa_score" id="dsa_score" min="1" max="10" step="0.5" value="5" oninput="syncVal(this,'dsa_val')">
+              <span class="val-badge" id="dsa_val">5.0</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="system_design_score">System Design Knowledge <span class="hint">(1–10)</span></label>
+            <div class="slider-row">
+              <input type="range" name="system_design_score" id="system_design_score" min="1" max="10" step="0.5" value="5" oninput="syncVal(this,'sys_val')">
+              <span class="val-badge" id="sys_val">5.0</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="communication_score">Communication &amp; Interpersonal Skills <span class="hint">(1–10)</span></label>
+            <div class="slider-row">
+              <input type="range" name="communication_score" id="communication_score" min="1" max="10" step="0.5" value="5" oninput="syncVal(this,'com_val')">
+              <span class="val-badge" id="com_val">5.0</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="coding_rank">Competitive Coding Rank <span class="hint">(optional)</span></label>
+            <input type="text" name="coding_rank" id="coding_rank" placeholder="e.g. LeetCode 2100, 5★ CodeChef, CF Expert">
+          </div>
+
+          <div class="form-group">
+            <label for="github_level">GitHub / Portfolio Activity</label>
+            <select name="github_level" id="github_level">
+              <option value="none">None — no public projects</option>
+              <option value="low" selected>Low — a few basic repos</option>
+              <option value="medium">Medium — several solid projects</option>
+              <option value="high">High — active, starred repos / OSS contributions</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="leadership_level">Leadership Experience</label>
+            <select name="leadership_level" id="leadership_level">
+              <option value="none" selected>None</option>
+              <option value="some">Some — team lead, club officer</option>
+              <option value="extensive">Extensive — managed teams / founded organisations</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="hackathons">Hackathons / Competitions Participated</label>
+            <input type="number" name="hackathons" id="hackathons" min="0" max="50" step="1" value="0">
+          </div>
+
+          <div class="form-group">
+            <label for="certifications">Certifications <span class="hint">(comma-separated)</span></label>
+            <input type="text" name="certifications" id="certifications" placeholder="e.g. AWS Solutions Architect, CFA Level 1, PMP">
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" name="open_source" id="open_source">
+              <span>I have contributed to open-source projects</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════
+           STEP 5 — Career Preferences
+      ════════════════════════════════════════════════════════ -->
+      <div class="step-panel" id="panel-5">
+        <h2 class="section-title">🎯 Career Preferences</h2>
+        <p class="section-sub">Helps us refine domain and company-specific readiness</p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="favorite_domain">Preferred Domain</label>
+            <select name="favorite_domain" id="favorite_domain">
+              <option value="">Any domain</option>
+              <option value="technology">Technology</option>
+              <option value="healthcare">Healthcare</option>
+              <option value="finance">Finance</option>
+              <option value="creative">Creative</option>
+              <option value="engineering">Engineering</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="target_company">Target Company <span class="hint">(optional — enables company-specific readiness)</span></label>
+            <input type="text" name="target_company" id="target_company" placeholder="e.g. Google, Goldman Sachs, Boeing, Disney">
+          </div>
+        </div>
+
+        <div class="predict-banner">
+          <p>🚀 Ready? We'll analyse 14 readiness factors against your target domain and company.</p>
+        </div>
+      </div>
+
+      <!-- ── Navigation buttons ──────────────────────────────── -->
+      <div class="step-nav">
+        <button type="button" class="btn btn-secondary" id="prevBtn" onclick="changeStep(-1)" style="display:none">← Back</button>
+        <button type="button" class="btn btn-primary" id="nextBtn" onclick="changeStep(1)">Next →</button>
+        <button type="submit" class="btn btn-cta" id="submitBtn" style="display:none">🔮 Predict My Career</button>
+      </div>
+
+    </div><!-- /form-card -->
+  </form>
+
+</div><!-- /page-shell -->
+
+<script>
+  let currentStep = 1;
+  const totalSteps = 5;
+
+  function syncVal(el, targetId) {
+    document.getElementById(targetId).textContent = parseFloat(el.value).toFixed(1);
+  }
+
+  function changeStep(direction) {
+    const panels = document.querySelectorAll('.step-panel');
+    const stepItems = document.querySelectorAll('.step-item');
+
+    panels[currentStep - 1].classList.remove('active');
+    stepItems[currentStep - 1].classList.remove('active');
+    stepItems[currentStep - 1].classList.add('completed');
+
+    currentStep += direction;
+    if (currentStep < 1) currentStep = 1;
+    if (currentStep > totalSteps) currentStep = totalSteps;
+
+    panels[currentStep - 1].classList.add('active');
+    stepItems[currentStep - 1].classList.add('active');
+    stepItems[currentStep - 1].classList.remove('completed');
+
+    // If going back, un-complete the current step
+    if (direction < 0) {
+      stepItems[currentStep - 1].classList.remove('completed');
+    }
+
+    document.getElementById('prevBtn').style.display = currentStep === 1 ? 'none' : 'inline-flex';
+    document.getElementById('nextBtn').style.display = currentStep === totalSteps ? 'none' : 'inline-flex';
+    document.getElementById('submitBtn').style.display = currentStep === totalSteps ? 'inline-flex' : 'none';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+
 </body>
 </html>
