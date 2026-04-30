@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CareerPredictor — Company Readiness Edition</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="page-shell">
+
+  <header class="site-header">
+    <div class="logo">🎯 CareerPredictor</div>
+    <p class="tagline" id="headerTagline">AI-powered career fit analysis using 14 company-readiness criteria</p>
+  </header>
+
+  <div id="alertBox" class="alert alert-error" style="display:none"></div>
+
+  <!-- ══════════════════════════════════════════════════════
+       FORM VIEW
+  ═══════════════════════════════════════════════════════ -->
+  <div id="formView">
+
+    <!-- Step indicator -->
+    <div class="stepper" id="stepper">
+      <div class="step-item active" data-step="1"><span class="step-num">1</span><span class="step-label">Personality</span></div>
+      <div class="step-connector"></div>
+      <div class="step-item" data-step="2"><span class="step-num">2</span><span class="step-label">Aptitude</span></div>
+      <div class="step-connector"></div>
+      <div class="step-item" data-step="3"><span class="step-num">3</span><span class="step-label">Education</span></div>
+      <div class="step-connector"></div>
+      <div class="step-item" data-step="4"><span class="step-num">4</span><span class="step-label">Skills</span></div>
+      <div class="step-connector"></div>
+      <div class="step-item" data-step="5"><span class="step-num">5</span><span class="step-label">Preferences</span></div>
+    </div>
+
+    <form id="mainForm">
+      <div class="form-card">
+
+        <!-- STEP 1 — Big Five Personality -->
+        <div class="step-panel active" id="panel-1">
+          <h2 class="section-title">🧠 Personality Traits</h2>
+          <p class="section-sub">Rate each trait from 1 (very low) to 10 (very high)</p>
+          <div class="slider-grid">
+            <div class="slider-group">
+              <label>Openness to Experience <span class="trait-desc">— creativity, curiosity, broad interests</span></label>
+              <div class="slider-row">
+                <input type="range" name="o_score" id="o_score" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'o_val')">
+                <span class="val-badge" id="o_val">5.0</span>
+              </div>
+            </div>
+            <div class="slider-group">
+              <label>Conscientiousness <span class="trait-desc">— discipline, organisation, goal-driven</span></label>
+              <div class="slider-row">
+                <input type="range" name="c_score" id="c_score" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'c_val')">
+                <span class="val-badge" id="c_val">5.0</span>
+              </div>
+            </div>
+            <div class="slider-group">
+              <label>Extraversion <span class="trait-desc">— sociability, assertiveness, energy</span></label>
+              <div class="slider-row">
+                <input type="range" name="e_score" id="e_score" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'e_val')">
+                <span class="val-badge" id="e_val">5.0</span>
+              </div>
+            </div>
+            <div class="slider-group">
+              <label>Agreeableness <span class="trait-desc">— empathy, cooperation, trust</span></label>
+              <div class="slider-row">
+                <input type="range" name="a_score" id="a_score" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'a_val')">
+                <span class="val-badge" id="a_val">5.0</span>
+              </div>
+            </div>
+            <div class="slider-group">
+              <label>Neuroticism <span class="trait-desc">— emotional reactivity, stress sensitivity</span></label>
+              <div class="slider-row">
+                <input type="range" name="n_score" id="n_score" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'n_val')">
+                <span class="val-badge" id="n_val">5.0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2 — Aptitude Scores -->
+        <div class="step-panel" id="panel-2">
+          <h2 class="section-title">📐 Aptitude Scores</h2>
+          <p class="section-sub">Rate each aptitude from 1 (very low) to 10 (very high)</p>
+          <div class="slider-grid">
+            <div class="slider-group">
+              <label>Numerical Aptitude <span class="trait-desc">— working with numbers and data</span></label>
+              <div class="slider-row">
+                <input type="range" name="numerical" id="numerical" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'num_val')">
+                <span class="val-badge" id="num_val">5.0</span>
+              </div>
+            </div>
+            <div class="slider-group">
+              <label>Spatial Aptitude <span class="trait-desc">— visualising shapes, structures, designs</span></label>
+              <div class="slider-row">
+                <input type="range" name="spatial" id="spatial" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'spa_val')">
+                <span class="val-badge" id="spa_val">5.0</span>
+              </div>
+            </div>
+            <div class="slider-group">
+              <label>Perceptual Aptitude <span class="trait-desc">— accuracy, attention to detail</span></label>
+              <div class="slider-row">
+                <input type="range" name="perceptual" id="perceptual" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'per_val')">
+                <span class="val-badge" id="per_val">5.0</span>
+              </div>
+            </div>
+            <div class="slider-group">
+              <label>Abstract Reasoning <span class="trait-desc">— patterns, logic, problem-solving</span></label>
+              <div class="slider-row">
+                <input type="range" name="abstract" id="abstract" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'abs_val')">
+                <span class="val-badge" id="abs_val">5.0</span>
+              </div>
+            </div>
+            <div class="slider-group">
+              <label>Verbal Reasoning <span class="trait-desc">— language, comprehension, communication</span></label>
+              <div class="slider-row">
+                <input type="range" name="verbal" id="verbal" min="1" max="10" step="0.1" value="5" oninput="syncVal(this,'vbl_val')">
+                <span class="val-badge" id="vbl_val">5.0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3 — Education & Experience -->
+        <div class="step-panel" id="panel-3">
+          <h2 class="section-title">🎓 Education &amp; Experience</h2>
+          <p class="section-sub">Companies screen heavily on education fit and work history</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="education_level">Highest Education Level</label>
+              <select name="education_level" id="education_level">
+                <option value="high_school">High School / Secondary</option>
+                <option value="associate">Associate / Diploma</option>
+                <option value="bachelor" selected>Bachelor's Degree</option>
+                <option value="master">Master's Degree</option>
+                <option value="phd">PhD / Doctorate</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="degree_field">Degree / Study Field</label>
+              <select name="degree_field" id="degree_field">
+                <option value="stem" selected>STEM (Science, Tech, Engineering, Math)</option>
+                <option value="business">Business / Finance / Economics</option>
+                <option value="arts">Arts / Design / Humanities</option>
+                <option value="medicine">Medicine / Biology / Health</option>
+                <option value="law">Law / Political Science</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="gpa">GPA / Academic Score <span class="hint">(out of 4.0)</span></label>
+              <input type="number" name="gpa" id="gpa" min="0" max="4.0" step="0.01" value="3.0" placeholder="e.g. 3.5">
+            </div>
+            <div class="form-group">
+              <label for="yoe">Years of Work Experience</label>
+              <input type="number" name="yoe" id="yoe" min="0" max="40" step="1" value="0">
+            </div>
+            <div class="form-group">
+              <label for="internships">Number of Internships</label>
+              <input type="number" name="internships" id="internships" min="0" max="10" step="1" value="0">
+            </div>
+            <div class="form-group">
+              <label for="disciplines">Familiar Disciplines <span class="hint">(comma-separated)</span></label>
+              <input type="text" name="disciplines" id="disciplines" placeholder="e.g. data analysis, UI design, financial modelling">
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4 — Technical Skills & Portfolio -->
+        <div class="step-panel" id="panel-4">
+          <h2 class="section-title">⚡ Technical Skills &amp; Portfolio</h2>
+          <p class="section-sub">Key signals companies check during technical screening</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="dsa_score">Data Structures &amp; Algorithms <span class="hint">(1–10)</span></label>
+              <div class="slider-row">
+                <input type="range" name="dsa_score" id="dsa_score" min="1" max="10" step="0.5" value="5" oninput="syncVal(this,'dsa_val')">
+                <span class="val-badge" id="dsa_val">5.0</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="system_design_score">System Design Knowledge <span class="hint">(1–10)</span></label>
+              <div class="slider-row">
+                <input type="range" name="system_design_score" id="system_design_score" min="1" max="10" step="0.5" value="5" oninput="syncVal(this,'sys_val')">
+                <span class="val-badge" id="sys_val">5.0</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="communication_score">Communication &amp; Interpersonal Skills <span class="hint">(1–10)</span></label>
+              <div class="slider-row">
+                <input type="range" name="communication_score" id="communication_score" min="1" max="10" step="0.5" value="5" oninput="syncVal(this,'com_val')">
+                <span class="val-badge" id="com_val">5.0</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="coding_rank">Competitive Coding Rank <span class="hint">(optional)</span></label>
+              <input type="text" name="coding_rank" id="coding_rank" placeholder="e.g. LeetCode 2100, 5★ CodeChef, CF Expert">
+            </div>
+            <div class="form-group">
+              <label for="github_level">GitHub / Portfolio Activity</label>
+              <select name="github_level" id="github_level">
+                <option value="none">None — no public projects</option>
+                <option value="low" selected>Low — a few basic repos</option>
+                <option value="medium">Medium — several solid projects</option>
+                <option value="high">High — active, starred repos / OSS contributions</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="leadership_level">Leadership Experience</label>
+              <select name="leadership_level" id="leadership_level">
+                <option value="none" selected>None</option>
+                <option value="some">Some — team lead, club officer</option>
+                <option value="extensive">Extensive — managed teams / founded organisations</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="hackathons">Hackathons / Competitions Participated</label>
+              <input type="number" name="hackathons" id="hackathons" min="0" max="50" step="1" value="0">
+            </div>
+            <div class="form-group">
+              <label for="certifications">Certifications <span class="hint">(comma-separated)</span></label>
+              <input type="text" name="certifications" id="certifications" placeholder="e.g. AWS Solutions Architect, CFA Level 1, PMP">
+            </div>
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" name="open_source" id="open_source">
+                <span>I have contributed to open-source projects</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 5 — Career Preferences -->
+        <div class="step-panel" id="panel-5">
+          <h2 class="section-title">🎯 Career Preferences</h2>
+          <p class="section-sub">Helps us refine domain and company-specific readiness</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="favorite_domain">Preferred Domain</label>
+              <select name="favorite_domain" id="favorite_domain">
+                <option value="">Any domain</option>
+                <option value="technology">Technology</option>
+                <option value="healthcare">Healthcare</option>
+                <option value="finance">Finance</option>
+                <option value="creative">Creative</option>
+                <option value="engineering">Engineering</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="target_company">Target Company <span class="hint">(optional — enables company-specific readiness)</span></label>
+              <input type="text" name="target_company" id="target_company" placeholder="e.g. Google, Goldman Sachs, Boeing, Disney">
+            </div>
+          </div>
+          <div class="predict-banner">
+            <p>🚀 Ready? We'll analyse 14 readiness factors against your target domain and company.</p>
+          </div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="step-nav">
+          <button type="button" class="btn btn-secondary" id="prevBtn" onclick="changeStep(-1)" style="display:none">← Back</button>
+          <button type="button" class="btn btn-primary"   id="nextBtn" onclick="changeStep(1)">Next →</button>
+          <button type="button" class="btn btn-cta"       id="submitBtn" style="display:none" onclick="runPrediction()">🔮 Predict My Career</button>
+        </div>
+
+      </div><!-- /form-card -->
+    </form>
+
+  </div><!-- /formView -->
+
+  <!-- ══════════════════════════════════════════════════════
+       RESULTS VIEW
+  ═══════════════════════════════════════════════════════ -->
+  <div id="resultsView" style="display:none">
+
+    <!-- Hero card -->
+    <div class="hero-card" id="heroCard">
+      <div class="hero-left">
+        <div class="big-score" id="bigScore">—</div>
+        <div class="big-label">Overall Readiness</div>
+      </div>
+      <div class="hero-right">
+        <div class="viability-badge" id="viabilityBadge">—</div>
+        <p class="hero-explanation" id="heroExplanation"></p>
+        <p class="hero-domain">Domain assessed: <strong id="heroDomain"></strong></p>
+      </div>
+    </div>
+
+    <!-- Top Career Predictions -->
+    <section class="result-section">
+      <h2 class="section-title">🏆 Recommended Careers</h2>
+      <div class="career-cards" id="careerCards"></div>
+    </section>
+
+    <!-- Radar chart -->
+    <section class="result-section">
+      <h2 class="section-title">📡 Readiness Profile Radar</h2>
+      <div class="chart-wrap">
+        <canvas id="radarChart" width="420" height="420"></canvas>
+      </div>
+    </section>
+
+    <!-- Factor Breakdown -->
+    <section class="result-section">
+      <h2 class="section-title">📊 Factor Breakdown</h2>
+      <div class="factor-grid" id="factorGrid"></div>
+    </section>
+
+    <!-- Skill Gaps -->
+    <section class="result-section" id="skillGapsSection" style="display:none">
+      <h2 class="section-title">⚠️ Skill Gaps Identified</h2>
+      <div class="gap-list" id="gapList"></div>
+    </section>
+
+    <!-- Company Readiness -->
+    <section class="result-section" id="companyReadinessSection" style="display:none">
+      <h2 class="section-title" id="companyReadinessTitle">🏢 Company Readiness</h2>
+      <div class="company-header">
+        <div class="company-score-ring">
+          <svg viewBox="0 0 120 120" class="ring-svg">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#e2e8f0" stroke-width="10"/>
+            <circle id="ringArc" cx="60" cy="60" r="50" fill="none"
+              stroke="#10b981" stroke-width="10"
+              stroke-dasharray="0 314.159"
+              stroke-dashoffset="78.54"
+              stroke-linecap="round"
+              transform="rotate(-90 60 60)"/>
+            <text x="60" y="55" text-anchor="middle" class="ring-pct" id="ringPct">0%</text>
+            <text x="60" y="72" text-anchor="middle" class="ring-label">Ready</text>
+          </svg>
+        </div>
+        <div class="company-culture">
+          <div class="culture-label">Culture &amp; Fit</div>
+          <div class="culture-text" id="cultureFit"></div>
+        </div>
+      </div>
+      <div class="checklist" id="companyChecklist"></div>
+    </section>
+
+    <!-- Action Plan -->
+    <section class="result-section" id="actionPlanSection" style="display:none">
+      <h2 class="section-title">🗺️ Your Action Plan</h2>
+      <div class="action-list" id="actionList"></div>
+    </section>
+
+    <!-- Alternative Companies -->
+    <section class="result-section" id="altCompaniesSection" style="display:none">
+      <h2 class="section-title">🔀 Alternative Company Paths</h2>
+      <p class="section-sub">Based on your current profile, these routes may be more immediately accessible:</p>
+      <ul class="alt-list" id="altList"></ul>
+    </section>
+
+    <div class="back-wrap">
+      <button type="button" class="btn btn-secondary" onclick="showForm()">← Try Again</button>
+    </div>
+
+  </div><!-- /resultsView -->
+
+</div><!-- /page-shell -->
+
+<script src="predictor.js"></script>
+<script>
+  // ── Model loading ─────────────────────────────────────────────
+  let predictor = null;
+
+  fetch('model_data.json')
+    .then(r => r.json())
+    .then(data => { predictor = new CareerPredictor(data); })
+    .catch(() => showAlert('Failed to load model data. Please refresh the page.'));
+
+  // ── Stepper ───────────────────────────────────────────────────
+  let currentStep = 1;
+  const totalSteps = 5;
+
+  function syncVal(el, targetId) {
+    document.getElementById(targetId).textContent = parseFloat(el.value).toFixed(1);
+  }
+
+  function changeStep(direction) {
+    const panels    = document.querySelectorAll('.step-panel');
+    const stepItems = document.querySelectorAll('.step-item');
+
+    panels[currentStep - 1].classList.remove('active');
+    stepItems[currentStep - 1].classList.remove('active');
+    stepItems[currentStep - 1].classList.add('completed');
+
+    currentStep += direction;
+    if (currentStep < 1) currentStep = 1;
+    if (currentStep > totalSteps) currentStep = totalSteps;
+
+    panels[currentStep - 1].classList.add('active');
+    stepItems[currentStep - 1].classList.add('active');
+    stepItems[currentStep - 1].classList.remove('completed');
+
+    if (direction < 0) stepItems[currentStep - 1].classList.remove('completed');
+
+    document.getElementById('prevBtn').style.display   = currentStep === 1          ? 'none' : 'inline-flex';
+    document.getElementById('nextBtn').style.display   = currentStep === totalSteps ? 'none' : 'inline-flex';
+    document.getElementById('submitBtn').style.display = currentStep === totalSteps ? 'inline-flex' : 'none';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Alert ─────────────────────────────────────────────────────
+  function showAlert(msg) {
+    const el = document.getElementById('alertBox');
+    el.textContent = '⚠ ' + msg;
+    el.style.display = 'block';
+  }
+
+  // ── Form ↔ Results toggling ───────────────────────────────────
+  function showForm() {
+    document.getElementById('formView').style.display    = 'block';
+    document.getElementById('resultsView').style.display = 'none';
+    document.getElementById('headerTagline').textContent = 'AI-powered career fit analysis using 14 company-readiness criteria';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Prediction ────────────────────────────────────────────────
+  function runPrediction() {
+    if (!predictor) { showAlert('Model not loaded yet. Please wait a moment and try again.'); return; }
+
+    const f = id => document.getElementById(id);
+
+    try {
+      const features = [
+        parseFloat(f('o_score').value),  parseFloat(f('c_score').value),
+        parseFloat(f('e_score').value),  parseFloat(f('a_score').value),
+        parseFloat(f('n_score').value),  parseFloat(f('numerical').value),
+        parseFloat(f('spatial').value),  parseFloat(f('perceptual').value),
+        parseFloat(f('abstract').value), parseFloat(f('verbal').value),
+      ];
+
+      const certRaw = f('certifications').value.trim();
+      const certifications = certRaw ? certRaw.split(',').map(c => c.trim()).filter(Boolean) : [];
+
+      const result = predictor.predictCareer({
+        features,
+        yoe:                    parseInt(f('yoe').value) || 0,
+        competitive_coding_rank: f('coding_rank').value.trim() || null,
+        favorite_domain:        f('favorite_domain').value || null,
+        target_company:         f('target_company').value.trim() || null,
+        education_level:        f('education_level').value,
+        degree_field:           f('degree_field').value,
+        gpa:                    parseFloat(f('gpa').value) || 3.0,
+        certifications,
+        github_level:           f('github_level').value,
+        internships:            parseInt(f('internships').value) || 0,
+        communication_score:    parseFloat(f('communication_score').value),
+        leadership_level:       f('leadership_level').value,
+        dsa_score:              parseFloat(f('dsa_score').value),
+        system_design_score:    parseFloat(f('system_design_score').value),
+        open_source:            f('open_source').checked,
+        hackathons:             parseInt(f('hackathons').value) || 0,
+      });
+
+      renderResults(result);
+
+    } catch (e) {
+      showAlert('Error processing your request: ' + e.message);
+    }
+  }
+
+  // ── Render results ────────────────────────────────────────────
+  let radarChartInstance = null;
+
+  function renderResults(r) {
+    // Hero
+    const scoreEl  = document.getElementById('bigScore');
+    const level    = r.viability_assessment.level.toLowerCase();
+    const score    = r.viability_assessment.score;
+    scoreEl.textContent = Math.round(score * 100) + '%';
+    const heroCard  = document.getElementById('heroCard');
+    heroCard.className  = `hero-card viability-${level}`;
+
+    const badge = document.getElementById('viabilityBadge');
+    badge.textContent = r.viability_assessment.level + ' Viability';
+    badge.className   = `viability-badge badge-${level}`;
+
+    document.getElementById('heroExplanation').textContent = r.viability_assessment.explanation;
+    document.getElementById('heroDomain').textContent = r.effective_domain.charAt(0).toUpperCase() + r.effective_domain.slice(1);
+
+    // Career cards
+    const careerCards = document.getElementById('careerCards');
+    careerCards.innerHTML = r.predicted_careers.map((career, i) => {
+      const pct = Math.round(r.career_probabilities[i] * 100);
+      return `
+        <div class="career-card ${i === 0 ? 'top-career' : ''}">
+          <div class="career-rank">#${i + 1}</div>
+          <div class="career-name">${esc(career)}</div>
+          <div class="career-bar-wrap"><div class="career-bar" style="width:${pct}%"></div></div>
+          <div class="career-pct">${pct}% match</div>
+        </div>`;
+    }).join('');
+
+    // Radar chart
+    const fd = r.readiness_factors;
+    const radarLabels = ['AI Confidence', 'Coding Skill', 'DSA / Algorithms',
+                         'Portfolio', 'Experience', 'Education',
+                         'Degree Fit', 'Certifications', 'Communication', 'Leadership'];
+    const radarData = [
+      fd.model_confidence, fd.coding_skill, fd.dsa,
+      fd.portfolio, fd.experience, fd.education_level,
+      fd.degree_relevance, fd.certifications, fd.communication, fd.leadership
+    ].map(v => parseFloat((v * 10).toFixed(1)));
+
+    if (radarChartInstance) radarChartInstance.destroy();
+    const ctx = document.getElementById('radarChart').getContext('2d');
+    radarChartInstance = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: radarLabels,
+        datasets: [{
+          label: 'Your Profile',
+          data: radarData,
+          backgroundColor: 'rgba(55,62,152,0.18)',
+          borderColor: '#373e98', borderWidth: 2,
+          pointBackgroundColor: '#f16775', pointBorderColor: '#fff',
+          pointRadius: 5, pointHoverRadius: 7,
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: { r: {
+          min: 0, max: 10, ticks: { stepSize: 2, color: '#64748b', font: { size: 11 } },
+          grid: { color: 'rgba(0,0,0,0.07)' }, angleLines: { color: 'rgba(0,0,0,0.10)' },
+          pointLabels: { color: '#374151', font: { size: 12, weight: '600' } },
+        }},
+        plugins: {
+          legend: { labels: { color: '#374151', font: { size: 13 } } },
+          tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}/10` } }
+        }
+      }
+    });
+
+    // Factor breakdown
+    const factorMeta = [
+      ['model_confidence', '🤖', 'AI Confidence'],
+      ['coding_skill',     '💻', 'Coding Skill'],
+      ['dsa',              '🧮', 'DSA / Algorithms'],
+      ['portfolio',        '🗂️', 'Portfolio / Projects'],
+      ['experience',       '💼', 'Work Experience'],
+      ['education_level',  '🎓', 'Education Level'],
+      ['degree_relevance', '📚', 'Degree Relevance'],
+      ['domain_match',     '🎯', 'Domain Match'],
+      ['company_match',    '🏢', 'Company Match'],
+      ['certifications',   '🏅', 'Certifications'],
+      ['gpa',              '📈', 'Academic GPA'],
+      ['internship',       '🔬', 'Internship Exp.'],
+      ['communication',    '🗣️', 'Communication'],
+      ['leadership',       '🌟', 'Leadership'],
+    ];
+    const factorGrid = document.getElementById('factorGrid');
+    factorGrid.innerHTML = factorMeta.map(([key, icon, label]) => {
+      const val = fd[key];
+      const pct = Math.round(val * 100);
+      const tier = pct >= 70 ? 'good' : (pct >= 40 ? 'mid' : 'low');
+      return `
+        <div class="factor-item">
+          <div class="factor-header">
+            <span class="factor-icon">${icon}</span>
+            <span class="factor-name">${label}</span>
+            <span class="factor-score score-${tier}">${pct}%</span>
+          </div>
+          <div class="factor-bar-bg">
+            <div class="factor-bar-fill fill-${tier}" style="width:${pct}%"></div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Skill gaps
+    const skillGapsSection = document.getElementById('skillGapsSection');
+    if (r.skill_gaps && r.skill_gaps.length > 0) {
+      document.getElementById('gapList').innerHTML = r.skill_gaps.map(g => `
+        <div class="gap-card">
+          <div class="gap-icon">${g.icon}</div>
+          <div class="gap-body">
+            <div class="gap-area">${esc(g.area)}</div>
+            <div class="gap-detail">${esc(g.detail)}</div>
+          </div>
+        </div>`).join('');
+      skillGapsSection.style.display = '';
+    } else {
+      skillGapsSection.style.display = 'none';
+    }
+
+    // Company readiness
+    const crSection = document.getElementById('companyReadinessSection');
+    if (r.company_readiness) {
+      const cr = r.company_readiness;
+      document.getElementById('companyReadinessTitle').textContent = `🏢 ${cr.company} — Readiness Checklist`;
+      const pct = cr.readiness_percent;
+      const arcColor = pct >= 70 ? '#10b981' : (pct >= 45 ? '#f59e0b' : '#ef4444');
+      const arcEl = document.getElementById('ringArc');
+      arcEl.setAttribute('stroke', arcColor);
+      arcEl.setAttribute('stroke-dasharray', `${pct * 3.14159} 314.159`);
+      document.getElementById('ringPct').textContent = pct + '%';
+      document.getElementById('cultureFit').textContent = cr.culture_fit;
+
+      document.getElementById('companyChecklist').innerHTML = cr.checks.map(check => `
+        <div class="check-row ${check.status ? 'check-pass' : 'check-fail'}">
+          <span class="check-icon">${check.status ? '✅' : '❌'}</span>
+          <div class="check-body">
+            <div class="check-name">${esc(check.check)}</div>
+            <div class="check-note">${esc(check.note)}</div>
+          </div>
+          <div class="check-score-pill">${Math.round(check.score * 100)}%</div>
+        </div>`).join('');
+      crSection.style.display = '';
+    } else {
+      crSection.style.display = 'none';
+    }
+
+    // Action plan
+    const apSection = document.getElementById('actionPlanSection');
+    if (r.action_plan && r.action_plan.length > 0) {
+      document.getElementById('actionList').innerHTML = r.action_plan.map((step, i) => `
+        <div class="action-item">
+          <div class="action-num">${i + 1}</div>
+          <div class="action-text">${esc(step)}</div>
+        </div>`).join('');
+      apSection.style.display = '';
+    } else {
+      apSection.style.display = 'none';
+    }
+
+    // Alternative companies
+    const acSection = document.getElementById('altCompaniesSection');
+    if (r.alternative_companies && r.alternative_companies.length > 0) {
+      document.getElementById('altList').innerHTML =
+        r.alternative_companies.map(co => `<li>${esc(co)}</li>`).join('');
+      acSection.style.display = '';
+    } else {
+      acSection.style.display = 'none';
+    }
+
+    // Switch view
+    document.getElementById('formView').style.display    = 'none';
+    document.getElementById('resultsView').style.display = 'block';
+    document.getElementById('headerTagline').textContent  = 'Your personalised career readiness report';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── HTML escape helper ────────────────────────────────────────
+  function esc(str) {
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+
+</body>
+</html>
